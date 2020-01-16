@@ -1,2 +1,3 @@
 # Exploring_Data_Scientist_Salaries
 An exploratory data analysis of income levels of data scientists from across the globe.
+This project aims to explore the factors that affect income of data scientists across the globe. It aims to look into background of data scientists in order to gain insight about how certain factors like education and country of residence affect one’s income. It also explores the tools and technologies used by high income data scientists. So as to create a comprehensive visual report that can help aspiring data scientists in choosing their educational and technological stack.

@@ -1,0 +1,330 @@
+---
+title: "Analysing the factors affecting income of data scientists"
+author: "Abhishek"
+date: "1/2/2020"
+output:
+  word_document: default
+  html_document: default
+---
+```{r}
+```
+
+
+```{r}
+#Importing libraries
+#library(tidyverse)
+library(gridExtra)
+library(scales)
+#library(plotly)
+library(RColorBrewer)
+library("dplyr")
+library("ggplot2")
+#library(skimr)
+library(plyr)
+library(dplyr)
+library(stringr)
+library(forcats)
+#library(descr)
+#library(repr)
+```
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+#*************************************INTRODUCTION*******************************************#
+This project aims to explore the factors that affect salary and income of data scientists across the globe. The dataset used for this project is taken from kaggle. It is based on a survey conducted in 2018 about personal, professional and technological details of data scientists across the globe. The survey consisted of 50 multiple choice questions. All the data in the dataset is categorical. More details are given in the word document.
+
+#*********************************FRAMEWORK FOR ANALYSIS***************************************#
+For analysing the data and creating the visualisations, I focussed on three main types of parameters: Socio-Demographic, Employment Related and Technological. For each section, I chose variables that affected the income variable in a practical sort of way, i.e. those which can be worked upon, inorder to present the audience with parameters that they can improve or work on. More details are given in the word document.
+
+#*********************************VARIABLE SELECTION***************************************#
+I selected the variables based on the criteria I have mentioned above. As all the variables were categorical, it was not possible to calculate a heatmap to get the correlation coefficient. So I chose the variables on the basis of my domain knowledge of the IT industry. Some variables were refactored as required. More details are given in the word document.
+```{r }
+#Reading the file
+df <- read.csv('D:\\MS\\R\\Project\\multipleChoiceResponses.csv')
+```
+
+
+
+```{r}
+#Gender
+options(repr.plot.width=5, repr.plot.height=4)
+gender_plot <- df %>%
+filter(Q1=="Male"|Q1=="Female")%>% 
+ggplot(aes(Q1))+geom_bar(aes(fill=Q1))+scale_fill_brewer(palette="Set2",  na.value = "gray")+xlab("Gender")+theme(legend.position="none")
+ggsave("gender.png")
+gender_plot
+```
+
+
+
+
+
+```{r }
+
+```
+
+
+
+
+
+```{r }
+#Refactoring income to 4 income levels
+df <- mutate(df,Q9=ifelse(Q9=="0-10,000"|Q9=="10-20,000"|Q9=="20-30,000"|Q9=="30-40,000"|Q9=="40-50,000","Low",
+                              ifelse(Q9=="50-60,000"|Q9=="60-70,000"|Q9=="70-80,000"|Q9=="80-90,000"|Q9=="90-100,000","Medium",
+                                     ifelse(Q9=="What is your current yearly compensation (approximate $USD)?","What is your current yearly compensation (approximate $USD)?",
+                                            ifelse(Q9==""|Q9=="I do not wish to disclose my approximate yearly compensation","NA","High")))))
+  
+```
+
+```{r }
+#Income plot
+income_plot<-df[-1,]%>%
+  filter(!Q9=="I do not wish to disclose my approximate yearly compensation"&!is.na(Q9))%>%
+  ggplot(aes(Q9))+geom_bar(aes(fill=Q9))+theme(axis.text.x = element_text(angle = 90))+labs(x = "Income Levels", fill = "Income")
+ggsave("income_plot.png")
+income_plot
+
+```
+
+```{r }
+#Refactoring names of countries
+df$Q3 <- mapvalues(df$Q3, from = c("Iran, Islamic Republic of..."), to  = c("Iran"))
+df$Q3 <- mapvalues(df$Q3, from = c("United Kingdom of Great Britain and Northern Ireland"), to  = c("UK"))
+df$Q3 <- mapvalues(df$Q3, from = c("United States of America"), to  = c("USA"))
+df$Q3 <- mapvalues(df$Q3, from = c("Republic of Korea"), to  = c("South Korea"))
+df$Q3 <- mapvalues(df$Q3, from = c("Hong Kong (S.A.R.)"), to  = c("Hong Kong"))
+```
+
+
+```{r }
+#Income by country
+income_country<-df[-1,]%>%
+  filter(Q3!=""& Q3!="I do not wish to disclose my location")%>%
+  ggplot(aes(Q3))+geom_bar(aes(fill=Q9))+theme(axis.text.x = element_text(angle = 90))+labs(x = "Country of Residence", fill = "Income")
+ggsave("income_country.png")
+income_country
+```
+
+
+```{r }
+#High income level by country
+income_country_high<-df[-1,]%>%
+  filter(Q3!=""& Q3!="I do not wish to disclose my location"&Q9 == "High")%>%
+  ggplot(aes(Q3))+geom_bar(aes(fill=Q9))+theme(axis.text.x = element_text(angle = 90))+labs(x = "Country of Residence", fill = "Income")
+ggsave("income_country_high.png")
+income_country_high
+```
+
+
+```{r }
+#High income level by country - pie-chart
+high_income_pie_chart<-df[-1,]%>%
+  filter(Q3!=""& Q3!="I do not wish to disclose my location"&Q9 == "High")%>%
+  ggplot(aes(x="", y=Q3, fill=Q3)) + geom_bar(stat="identity", width=1)+
+  coord_polar("y", start=0)+labs(x = NULL, y = NULL, fill = NULL, title = "High Income-Country Wise")+theme_classic()   + theme(axis.line = element_blank(),
+          axis.text = element_blank(),
+          axis.ticks = element_blank(),
+          plot.title = element_text(hjust = 0.5, color = "#666666"))
+ggsave("high_income_pie_chart.png")
+high_income_pie_chart
+```
+
+
+```{r }
+#Age group
+age_group<-df[-1,]%>%
+  filter(!is.na(Q2))%>%
+  ggplot(aes(Q2))+geom_bar(aes(fill=Q9))+theme(axis.text.x = element_text(angle = 90))+labs(x = "Age Group", fill = "Income")
+ggsave("age_group.png")
+age_group
+```
+
+```{r}
+#Refactoring education levels
+df$Q4 <- mapvalues(df$Q4, from = c("Some college/university study without earning a bachelorâ€™s degree"), to  = c("Non University"))
+df$Q4 <- mapvalues(df$Q4, from = c("No formal education past high school"), to  = c("Non University"))
+df$Q4 <- mapvalues(df$Q4, from = c("Bachelorâ€™s degree"), to  = c("Bachelors"))
+df$Q4 <- mapvalues(df$Q4, from = c("Masterâ€™s degree"), to  = c("Masters"))
+df$Q4 <- mapvalues(df$Q4, from = c("Doctoral degree"), to  = c("Doctoral"))
+
+```
+
+
+```{r}
+#Education level
+education<-df[-1,]%>%
+  filter(Q4!="")%>%
+  ggplot(aes(Q4))+geom_bar(aes(fill=Q9))+theme(axis.text.x = element_text(angle = 90))+labs(x = "Education Levels", fill = "Income")
+ggsave("education.png")
+education
+```
+
+
+```{r}
+#Refactoring education stream
+df$Q5 <- mapvalues(df$Q5, from = c("A business discipline (accounting, economics, finance, etc.)"), to  = c("Business"))
+df$Q5 <- mapvalues(df$Q5, from = c("Computer science (software engineering, etc.)"), to  = c("Comp.Sc"))
+df$Q5 <- mapvalues(df$Q5, from = c("Engineering (non-computer focused)"), to  = c("Engineering"))
+df$Q5 <- mapvalues(df$Q5, from = c("Environmental science or geology"), to  = c("Geology"))
+df$Q5 <- mapvalues(df$Q5, from = c("Fine arts or performing arts"), to  = c("Arts"))
+df$Q5 <- mapvalues(df$Q5, from = c("Humanities (history, literature, philosophy, etc.)"), to  = c("Humanities"))
+df$Q5 <- mapvalues(df$Q5, from = c("Information technology, networking, or system administration"), to  = c("Comp.Sc"))
+df$Q5 <- mapvalues(df$Q5, from = c("Mathematics or statistics"), to  = c("Maths"))
+df$Q5 <- mapvalues(df$Q5, from = c("Medical or life sciences (biology, chemistry, medicine, etc.)"), to  = c("Life.Sc"))
+df$Q5 <- mapvalues(df$Q5, from = c("Physics or astronomy"), to  = c("Physics"))
+df$Q5 <- mapvalues(df$Q5, from = c("Social sciences (anthropology, psychology, sociology, etc.)"), to  = c("Humanities"))
+```
+
+
+```{r}
+#Education stream
+ed_stream<-df[-1,]%>%
+  filter(Q5!="")%>%
+  ggplot(aes(Q5))+geom_bar(aes(fill=Q9))+theme(axis.text.x = element_text(angle = 90))+labs(x = "Stream of Education", fill = "Income")
+ggsave("ed_stream.png")
+ed_stream
+```
+
+
+```{r}
+#Education stream facet wrap
+ed_stream_facet<-df[-1,]%>%
+  filter(Q5!="")%>%
+  ggplot(aes(Q5))+geom_bar(aes(fill=Q9))+theme(axis.text.x = element_text(angle = 90))+facet_wrap(~Q9)+labs(x = "Stream of Education", fill = "Income")
+ggsave("ed_stream_facet.png")
+ed_stream_facet
+```
+
+
+```{r}
+#Job Title
+job<-df[-1,]%>%
+  filter(Q6!="")%>%
+  ggplot(aes(Q6))+geom_bar(aes(fill=Q9))+theme(axis.text.x = element_text(angle = 90))+labs(x = "Job Title", fill = "Income")
+ggsave("job.png")
+job
+```
+```{r}
+#Programming language
+p_lang<-df[-1,]%>%
+  filter(Q17!="")%>%
+  ggplot(aes(Q17))+geom_bar(aes(fill=Q9))+theme(axis.text.x = element_text(angle = 90))+labs(x = "Programming Language", fill = "Income")
+ggsave("p_lang.png")
+p_lang
+```
+
+
+```{r}
+#Experience in machine learning
+age<-df[-1,]%>%
+  filter(!is.na(Q25)&Q25!="I have never studied machine learning but plan to learn in the future"&Q25!="I have never studied machine learning and I do not plan to")%>%
+  ggplot(aes(Q25))+geom_bar(aes(fill=Q9))+theme(axis.text.x = element_text(angle = 90))+labs(x = "Age", fill = "Income")
+ggsave("age.png")
+age
+```
+
+
+```{r}
+#Creating dataframe with only high income data
+df_high <- df[df$Q9=="High",]
+```
+
+
+
+```{r}
+#Languages which they use
+p_lang_high<-df_high[-1,]%>%
+  filter(Q17!="")%>%
+  ggplot(aes(Q17))+geom_bar(aes(fill=Q9))+theme(axis.text.x = element_text(angle = 90))+labs(x = "Programming Language", fill = "Income")
+ggsave("p_lang_high.png")
+p_lang_high
+```
+
+```{r}
+#People who work in Python
+summary(df_high$Q17=="Python")
+```
+
+```{r}
+#Calculating percentage of people who work in Python
+(888/(888+1330))*100
+
+```
+
+
+```{r}
+#Data Types which they work upon
+dtype_high<-df_high[-1,]%>%
+  filter(Q32!="")%>%
+  ggplot(aes(Q32))+geom_bar(aes(fill=Q9))+theme(axis.text.x = element_text(angle = 90))+labs(x = "Data Type", fill = "Income")
+ggsave("dtype_high.png")
+dtype_high
+```
+
+
+```{r}
+#ML Frameworks they use most
+ml_high<-df_high[-1,]%>%
+  filter(Q20!="")%>%
+  ggplot(aes(Q20))+geom_bar(aes(fill=Q9))+theme(axis.text.x = element_text(angle = 90))+labs(x = "Machine Learning Framework", fill = "Income")
+ggsave("ml_high.png")
+ml_high
+```
+```{r}
+#Visualisation Tools they use most
+vistools<-df_high[-1,]%>%
+  filter(Q22!="")%>%
+  ggplot(aes(Q22))+geom_bar(aes(fill=Q9))+theme(axis.text.x = element_text(angle = 90))+labs(x = "Visualisation Tools", fill = "Income")
+ggsave("vistools.png")
+vistools
+```
+```{r}
+#Industry they work for
+industry<-df_high[-1,]%>%
+  filter(Q7!="")%>%
+  ggplot(aes(Q7))+geom_bar(aes(fill=Q9))+theme(axis.text.x = element_text(angle = 90))+labs(x = "Industry", fill = "Income")
+ggsave("industry.png")
+industry
+```
+
+
+
+
+```{r}
+da_tools<-df_high[-1,]%>%
+  filter(Q12_MULTIPLE_CHOICE!="")%>%
+  ggplot(aes(Q12_MULTIPLE_CHOICE))+geom_bar(aes(fill=Q9))+coord_flip()+labs(x = "Data Analysis Tool", fill = "Income")
+ggsave("da_tools.png")
+da_tools
+```
+```{r}
+olr<-df_high[-1,]%>%
+  filter(Q37!="")%>%
+  ggplot(aes(Q37))+geom_bar(aes(fill=Q9))+theme(axis.text.x = element_text(angle = 90))+labs(x = "Online Learning Resources", fill = "Income")
+ggsave("olr.png")
+olr
+```
+
+
+```{r}
+#Languages which they recommend
+pl_high<-df_high[-1,]%>%
+  filter(Q18!="")%>%
+  ggplot(aes(Q18))+geom_bar(aes(fill=Q9))+theme(axis.text.x = element_text(angle = 90))+labs(x = "Programming Language Suggested", fill = "Income")
+ggsave("pl_high.png")
+pl_high
+```
+
+```{r}
+#People who recommend Python
+summary(df_high$Q18=="Python")
+```
+
+
+```{r}
+#Calculating percentage of people who recommend Python
+(1507/(1507+711))*100
+```
+
